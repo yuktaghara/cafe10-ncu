@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Café 10 - Kitchen Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #222; color: white; }
+    h1 { text-align: center; color: #ffc107; }
+    .orders-grid { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 20px; }
+    .order-card { background: #333; border: 2px solid #ffc107; padding: 15px; border-radius: 8px; width: 200px; text-align: center; }
+    .token { font-size: 32px; color: #28a745; font-weight: bold; }
+    .item { font-size: 18px; margin: 10px 0; }
+    button { background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+  <h1>Café 10 - Live Token Screen</h1>
+  <div class="orders-grid" id="ordersList"></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBrBalu22OBYfa7y0OjtxHKsxIeyzzRbFc",
+      authDomain: "cafe10-ncu.firebaseapp.com",
+      databaseURL: "https://cafe10-ncu-default-rtdb.firebaseio.com",
+      projectId: "cafe10-ncu",
+      storageBucket: "cafe10-ncu.firebasestorage.app",
+      messagingSenderId: "673141418172",
+      appId: "1:673141418172:web:283db827e372bd429c88b9"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Listen to real-time order updates
+    db.ref('orders').on('value', (snapshot) => {
+      const ordersList = document.getElementById('ordersList');
+      ordersList.innerHTML = '';
+      
+      const orders = snapshot.val();
+      for (let token in orders) {
+        if (orders[token].status === 'Preparing') {
+          ordersList.innerHTML += `
+            <div class="order-card">
+              <div class="token">#${orders[token].token}</div>
+              <div class="item">${orders[token].item}</div>
+              <small>${orders[token].time}</small><br><br>
+              <button onclick="completeOrder(${orders[token].token})">Mark Ready</button>
+            </div>
+          `;
+        }
+      }
+    });
+
+    function completeOrder(token) {
+      db.ref('orders/' + token).update({ status: 'Completed' });
+    }
+  </script>
+</body>
+</html>

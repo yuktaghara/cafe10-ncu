@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Café 10 NCU - Order Food</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 500px; margin: auto; background: #f8f9fa; }
+    h2 { color: #800000; text-align: center; } /* NCU Maroon */
+    .menu-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+    button { background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+    .token-display { display: none; background: #e9ecef; border: 2px dashed #28a745; text-align: center; padding: 20px; border-radius: 10px; margin-top: 20px; }
+    .token-number { font-size: 40px; color: #28a745; font-weight: bold; }
+  </style>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+  <h2>Café 10 - NCU Online Order</h2>
+
+  <div id="menu">
+    <div class="menu-card"><span>Rajma Rice (₹80)</span><button onclick="placeOrder('Rajma Rice', 80)">Order</button></div>
+    <div class="menu-card"><span>Chole Bhature (₹90)</span><button onclick="placeOrder('Chole Bhature', 90)">Order</button></div>
+    <div class="menu-card"><span>Cold Coffee (₹50)</span><button onclick="placeOrder('Cold Coffee', 50)">Order</button></div>
+    <div class="menu-card"><span>Veg Sandwich (₹40)</span><button onclick="placeOrder('Veg Sandwich', 40)">Order</button></div>
+  </div>
+
+  <div id="tokenBox" class="token-display">
+    <h3>Order Placed Successfully!</h3>
+    <p>Your Token Number is:</p>
+    <div id="tokenNum" class="token-number">#100</div>
+    <p>Show this token at the Café 10 counter.</p>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBrBalu22OBYfa7y0OjtxHKsxIeyzzRbFc",
+      authDomain: "cafe10-ncu.firebaseapp.com",
+      databaseURL: "https://cafe10-ncu-default-rtdb.firebaseio.com",
+      projectId: "cafe10-ncu",
+      storageBucket: "cafe10-ncu.firebasestorage.app",
+      messagingSenderId: "673141418172",
+      appId: "1:673141418172:web:283db827e372bd429c88b9"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function placeOrder(itemName, price) {
+      db.ref('lastToken').transaction((currentToken) => {
+        return (currentToken || 100) + 1;
+      }, (error, committed, snapshot) => {
+        if (committed) {
+          const newToken = snapshot.val();
+
+          db.ref('orders/' + newToken).set({
+            item: itemName,
+            price: price,
+            token: newToken,
+            status: 'Preparing',
+            time: new Date().toLocaleTimeString()
+          });
+
+          document.getElementById('tokenNum').innerText = '#' + newToken;
+          document.getElementById('tokenBox').style.display = 'block';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
