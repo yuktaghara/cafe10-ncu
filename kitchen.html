@@ -3,14 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <title>Café 10 - Kitchen Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #222; color: white; }
-    h1 { text-align: center; color: #ffc107; }
-    .orders-grid { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 20px; }
-    .order-card { background: #333; border: 2px solid #ffc107; padding: 15px; border-radius: 8px; width: 200px; text-align: center; }
-    .token { font-size: 32px; color: #28a745; font-weight: bold; }
-    .item { font-size: 18px; margin: 10px 0; }
-    button { background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; }
+    * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
+    body { background-color: #121212; color: #ffffff; padding: 20px; }
+
+    header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid #2a2a2a; }
+    
+    .brand-title { display: flex; align-items: center; gap: 15px; }
+    .logo-container { background: #ffffff; padding: 4px 12px; border-radius: 8px; display: inline-flex; align-items: center; }
+    .university-logo { height: 36px; width: auto; object-fit: contain; }
+
+    h1 { font-size: 18px; color: #ffc107; display: flex; align-items: center; gap: 8px; }
+
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .metrics { background: #222; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid #444; }
+
+    /* Filter Controls */
+    .filter-bar { display: flex; gap: 10px; margin-top: 15px; }
+    .filter-btn { background: #222; color: #aaa; border: 1px solid #333; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .filter-btn.active { background: #ffc107; color: #000; border-color: #ffc107; }
+
+    .orders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-top: 20px; }
+    .order-card { background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 18px; text-align: center; border-top: 4px solid #ffc107; }
+    .order-card.completed { border-top-color: #28a745; opacity: 0.6; }
+
+    .token { font-size: 36px; font-weight: 700; color: #28a745; }
+    .item { font-size: 14px; margin: 10px 0; font-weight: 600; color: #e0e0e0; line-height: 1.4; }
+    .price-tag { font-size: 12px; color: #ffc107; font-weight: 600; margin-bottom: 8px; }
+    .time { font-size: 11px; color: #888; }
+
+    .btn-ready { margin-top: 12px; width: 100%; background: #28a745; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .btn-completed { margin-top: 12px; width: 100%; background: #444; color: #aaa; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: default; }
   </style>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -18,8 +44,26 @@
 </head>
 <body>
 
-  <h1>Café 10 - Live Token Screen</h1>
+  <header>
+    <div class="brand-title">
+      <div class="logo-container">
+        <img src="northcap uni cutout.png" alt="The NorthCap University Logo" class="university-logo" onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/The_NorthCap_University_logo.png/640px-The_NorthCap_University_logo.png';">
+      </div>
+      <h1><i class="fa-solid fa-kitchen-set"></i> Live Kitchen Display</h1>
+    </div>
+    <div class="header-actions">
+      <div class="metrics">Active Queue: <span id="pendingCount" style="color: #ffc107;">0</span></div>
+    </div>
+  </header>
+
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="setFilter('preparing', this)">Pending</button>
+    <button class="filter-btn" onclick="setFilter('completed', this)">Completed Today</button>
+  </div>
+
   <div class="orders-grid" id="ordersList"></div>
+
+  <audio id="orderSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
   <script>
     const firebaseConfig = {
@@ -35,25 +79,56 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Listen to real-time order updates
+    let currentFilter = 'preparing';
+    let previousCount = 0;
+    let allOrders = {};
+
+    function setFilter(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderOrders();
+    }
+
     db.ref('orders').on('value', (snapshot) => {
+      allOrders = snapshot.val() || {};
+      renderOrders();
+    });
+
+    function renderOrders() {
       const ordersList = document.getElementById('ordersList');
-      ordersList.innerHTML = '';
+      ordersList.innerHTML = ''; 
       
-      const orders = snapshot.val();
-      for (let token in orders) {
-        if (orders[token].status === 'Preparing') {
+      let activeCount = 0;
+
+      for (let token in allOrders) {
+        const order = allOrders[token];
+        if (order.status === 'Preparing') activeCount++;
+
+        const isPreparing = order.status === 'Preparing';
+        if ((currentFilter === 'preparing' && isPreparing) || (currentFilter === 'completed' && !isPreparing)) {
           ordersList.innerHTML += `
-            <div class="order-card">
-              <div class="token">#${orders[token].token}</div>
-              <div class="item">${orders[token].item}</div>
-              <small>${orders[token].time}</small><br><br>
-              <button onclick="completeOrder(${orders[token].token})">Mark Ready</button>
+            <div class="order-card ${!isPreparing ? 'completed' : ''}">
+              <div class="token">#${order.token}</div>
+              <div class="item">${order.item}</div>
+              <div class="price-tag">Total: ₹${order.price}</div>
+              <div class="time"><i class="fa-regular fa-clock"></i> ${order.time}</div>
+              ${isPreparing ? 
+                `<button class="btn-ready" onclick="completeOrder(${order.token})">Mark Ready</button>` : 
+                `<button class="btn-completed">Completed</button>`
+              }
             </div>
           `;
         }
       }
-    });
+
+      document.getElementById('pendingCount').innerText = activeCount;
+
+      if (activeCount > previousCount && previousCount !== 0) {
+        document.getElementById('orderSound').play().catch(() => {});
+      }
+      previousCount = activeCount;
+    }
 
     function completeOrder(token) {
       db.ref('orders/' + token).update({ status: 'Completed' });
