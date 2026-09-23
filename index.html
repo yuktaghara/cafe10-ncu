@@ -2,37 +2,259 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Café 10 NCU - Order Food</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Café 10 NCU - Advanced Ordering System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; max-width: 500px; margin: auto; background: #f8f9fa; }
-    h2 { color: #800000; text-align: center; } /* NCU Maroon */
-    .menu-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-    button { background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
-    .token-display { display: none; background: #e9ecef; border: 2px dashed #28a745; text-align: center; padding: 20px; border-radius: 10px; margin-top: 20px; }
-    .token-number { font-size: 40px; color: #28a745; font-weight: bold; }
+    :root {
+      --primary: #800000;
+      --accent: #28a745;
+      --gold: #f39c12;
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --text: #2c3e50;
+    }
+
+    * { box-sizing: border-box; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 100px; }
+
+    /* Header Bar with Logo */
+    .header { 
+      background: linear-gradient(135deg, #800000, #4a0000); 
+      color: white; 
+      padding: 25px 20px; 
+      text-align: center; 
+      border-bottom-left-radius: 25px; 
+      border-bottom-right-radius: 25px; 
+      box-shadow: 0 4px 15px rgba(128,0,0,0.25); 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-container {
+      background: #ffffff;
+      padding: 6px 16px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .university-logo {
+      height: 48px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .header-text h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
+    .header-text p { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+
+    .container { max-width: 480px; margin: auto; padding: 20px; }
+
+    /* Search Bar */
+    .search-box { display: flex; align-items: center; background: white; padding: 10px 15px; border-radius: 12px; margin-top: -35px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .search-box i { color: #888; margin-right: 10px; }
+    .search-box input { border: none; outline: none; width: 100%; font-size: 14px; background: transparent; }
+
+    /* Category Filter Tabs */
+    .categories { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; scrollbar-width: none; }
+    .categories::-webkit-scrollbar { display: none; }
+    .cat-btn { background: #e9ecef; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #555; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+    .cat-btn.active { background: var(--primary); color: white; }
+
+    /* Special Banner / Cards */
+    .special-card { background: #fff8e7; border: 1.5px solid var(--gold); position: relative; }
+    .special-badge { position: absolute; top: -10px; right: 15px; background: var(--gold); color: white; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Food Item Cards */
+    .menu-card { background: var(--card-bg); border-radius: 16px; padding: 15px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: transform 0.2s; }
+    .menu-card:hover { transform: translateY(-2px); }
+    
+    .food-info { display: flex; align-items: center; gap: 12px; }
+    .veg-dot { width: 14px; height: 14px; border: 2px solid #28a745; display: flex; align-items: center; justify-content: center; border-radius: 2px; }
+    .veg-dot::after { content: ''; width: 6px; height: 6px; background: #28a745; border-radius: 50%; }
+
+    .nonveg-dot { width: 14px; height: 14px; border: 2px solid #e74c3c; display: flex; align-items: center; justify-content: center; border-radius: 2px; }
+    .nonveg-dot::after { content: ''; width: 6px; height: 6px; background: #e74c3c; border-radius: 50%; }
+
+    .food-details h3 { font-size: 14px; font-weight: 600; }
+    .food-details p { font-size: 13px; font-weight: 600; color: var(--primary); margin-top: 2px; }
+
+    /* Quantity Controls */
+    .qty-controls { display: flex; align-items: center; gap: 8px; background: #f0f0f0; border-radius: 8px; padding: 3px 8px; }
+    .qty-btn { border: none; background: transparent; font-size: 14px; font-weight: 700; color: var(--primary); cursor: pointer; padding: 0 4px; }
+    .qty-count { font-size: 12px; font-weight: 600; min-width: 16px; text-align: center; }
+
+    .btn-add { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; }
+
+    /* Floating Cart Bar */
+    .cart-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 440px; background: #1e1e1e; color: white; padding: 12px 20px; border-radius: 16px; display: none; justify-content: space-between; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 99; animation: slideUp 0.3s ease; }
+    @keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+    .cart-btn { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; }
+
+    /* Token Card & Status Tracker */
+    .token-card { display: none; background: white; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.08); margin-top: 20px; border: 2px dashed #28a745; }
+    .token-number { font-size: 44px; font-weight: 700; color: var(--accent); margin: 5px 0; }
+    
+    .tracker { display: flex; justify-content: space-between; margin-top: 20px; position: relative; }
+    .tracker::before { content: ''; position: absolute; top: 12px; left: 15%; width: 70%; height: 3px; background: #e0e0e0; z-index: 1; }
+    .step { position: relative; z-index: 2; background: white; padding: 0 5px; }
+    .step-icon { width: 28px; height: 28px; border-radius: 50%; background: #e0e0e0; color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; margin: 0 auto 5px; }
+    .step.active .step-icon { background: var(--accent); }
+    .step-text { font-size: 10px; font-weight: 600; color: #777; }
+
+    /* Modal */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: white; padding: 25px; border-radius: 20px; text-align: center; width: 90%; max-width: 340px; max-height: 85vh; overflow-y: auto; }
+    .order-summary { text-align: left; background: #f8f9fa; padding: 12px; border-radius: 10px; margin: 12px 0; font-size: 12px; }
+    .summary-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
   </style>
 
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
-  <h2>Café 10 - NCU Online Order</h2>
-
-  <div id="menu">
-    <div class="menu-card"><span>Rajma Rice (₹80)</span><button onclick="placeOrder('Rajma Rice', 80)">Order</button></div>
-    <div class="menu-card"><span>Chole Bhature (₹90)</span><button onclick="placeOrder('Chole Bhature', 90)">Order</button></div>
-    <div class="menu-card"><span>Cold Coffee (₹50)</span><button onclick="placeOrder('Cold Coffee', 50)">Order</button></div>
-    <div class="menu-card"><span>Veg Sandwich (₹40)</span><button onclick="placeOrder('Veg Sandwich', 40)">Order</button></div>
+  <!-- Header with Brand Logo -->
+  <div class="header">
+    <div class="logo-container">
+      <img src="northcap uni cutout.png" alt="The NorthCap University Logo" class="university-logo" onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/The_NorthCap_University_logo.png/640px-The_NorthCap_University_logo.png';">
+    </div>
+    <div class="header-text">
+      <h1><i class="fa-solid fa-utensils"></i> Café 10 - NCU</h1>
+      <p>Smart Campus Dining System</p>
+    </div>
   </div>
 
-  <div id="tokenBox" class="token-display">
-    <h3>Order Placed Successfully!</h3>
-    <p>Your Token Number is:</p>
-    <div id="tokenNum" class="token-number">#100</div>
-    <p>Show this token at the Café 10 counter.</p>
+  <div class="container">
+    <!-- Search Bar -->
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="searchInput" onkeyup="filterSearch()" placeholder="Search dishes...">
+    </div>
+
+    <!-- Category Filter Tabs -->
+    <div class="categories">
+      <button class="cat-btn active" onclick="filterCategory('all', this)">All Items</button>
+      <button class="cat-btn" onclick="filterCategory('specials', this)">✨ Today's Special</button>
+      <button class="cat-btn" onclick="filterCategory('meals', this)">Meals</button>
+      <button class="cat-btn" onclick="filterCategory('drinks', this)">Beverages</button>
+      <button class="cat-btn" onclick="filterCategory('snacks', this)">Snacks</button>
+    </div>
+
+    <!-- Menu List -->
+    <div id="menuList">
+      
+      <!-- Day-Wise Specials -->
+      <div class="menu-card special-card" data-category="specials" data-day="1">
+        <div class="special-badge">Monday Special</div>
+        <div class="food-info">
+          <div class="veg-dot"></div>
+          <div class="food-details"><h3>Pav Bhaji</h3><p>₹50</p></div>
+        </div>
+        <div id="action-Pav Bhaji"><button class="btn-add" onclick="addToCart('Pav Bhaji', 50)">Add</button></div>
+      </div>
+
+      <div class="menu-card special-card" data-category="specials" data-day="2">
+        <div class="special-badge">Tuesday Special</div>
+        <div class="food-info">
+          <div class="veg-dot"></div>
+          <div class="food-details"><h3>Kadhi Chawal</h3><p>₹80</p></div>
+        </div>
+        <div id="action-Kadhi Chawal"><button class="btn-add" onclick="addToCart('Kadhi Chawal', 80)">Add</button></div>
+      </div>
+
+      <div class="menu-card special-card" data-category="specials" data-day="3">
+        <div class="special-badge">Wednesday Special</div>
+        <div class="food-info">
+          <div class="veg-dot"></div>
+          <div class="food-details"><h3>Veg Noodles</h3><p>₹80</p></div>
+        </div>
+        <div id="action-Veg Noodles"><button class="btn-add" onclick="addToCart('Veg Noodles', 80)">Add</button></div>
+      </div>
+
+      <div class="menu-card special-card" data-category="specials" data-day="4">
+        <div class="special-badge">Thursday Special</div>
+        <div class="food-info">
+          <div class="veg-dot"></div>
+          <div class="food-details"><h3>Dal Makhani Rice</h3><p>₹80</p></div>
+        </div>
+        <div id="action-Dal Makhani Rice"><button class="btn-add" onclick="addToCart('Dal Makhani Rice', 80)">Add</button></div>
+      </div>
+
+      <div class="menu-card special-card" data-category="specials" data-day="5">
+        <div class="special-badge">Friday Special</div>
+        <div class="food-info">
+          <div class="nonveg-dot"></div>
+          <div class="food-details"><h3>Cheese Omelette</h3><p>₹60</p></div>
+        </div>
+        <div id="action-Cheese Omelette"><button class="btn-add" onclick="addToCart('Cheese Omelette', 60)">Add</button></div>
+      </div>
+
+      <!-- Regular Menu -->
+      <div class="menu-card" data-category="meals">
+        <div class="food-info"><div class="veg-dot"></div><div class="food-details"><h3>Rajma Rice</h3><p>₹80</p></div></div>
+        <div id="action-Rajma Rice"><button class="btn-add" onclick="addToCart('Rajma Rice', 80)">Add</button></div>
+      </div>
+
+      <div class="menu-card" data-category="meals">
+        <div class="food-info"><div class="veg-dot"></div><div class="food-details"><h3>Chole Bhature</h3><p>₹90</p></div></div>
+        <div id="action-Chole Bhature"><button class="btn-add" onclick="addToCart('Chole Bhature', 90)">Add</button></div>
+      </div>
+
+      <div class="menu-card" data-category="drinks">
+        <div class="food-info"><div class="veg-dot"></div><div class="food-details"><h3>Cold Coffee</h3><p>₹50</p></div></div>
+        <div id="action-Cold Coffee"><button class="btn-add" onclick="addToCart('Cold Coffee', 50)">Add</button></div>
+      </div>
+
+      <div class="menu-card" data-category="snacks">
+        <div class="food-info"><div class="veg-dot"></div><div class="food-details"><h3>Veg Sandwich</h3><p>₹40</p></div></div>
+        <div id="action-Veg Sandwich"><button class="btn-add" onclick="addToCart('Veg Sandwich', 40)">Add</button></div>
+      </div>
+
+    </div>
+
+    <!-- Active Token Card -->
+    <div id="tokenBox" class="token-card">
+      <p style="font-size: 12px; color: #666; font-weight: 600;"><i class="fa-solid fa-circle-check" style="color:#28a745;"></i> Active Order</p>
+      <div id="tokenNum" class="token-number">#100</div>
+      <p style="font-size: 12px; color: #d9534f; font-weight: 600;"><i class="fa-solid fa-clock"></i> Est. Wait: <span id="waitTime">--</span> mins</p>
+
+      <div class="tracker">
+        <div class="step active"><div class="step-icon"><i class="fa-solid fa-check"></i></div><div class="step-text">Placed</div></div>
+        <div class="step active" id="stepPrep"><div class="step-icon"><i class="fa-solid fa-fire"></i></div><div class="step-text">Preparing</div></div>
+        <div class="step" id="stepReady"><div class="step-icon"><i class="fa-solid fa-bell"></i></div><div class="step-text">Ready</div></div>
+      </div>
+    </div>
   </div>
+
+  <!-- Floating Cart Bar -->
+  <div id="cartBar" class="cart-bar">
+    <div>
+      <div style="font-size: 11px; opacity: 0.8;" id="cartCountText">0 ITEMS</div>
+      <div style="font-size: 15px; font-weight: 700;" id="cartTotalText">₹0</div>
+    </div>
+    <button class="cart-btn" onclick="openPaymentModal()">View Cart & Pay <i class="fa-solid fa-arrow-right"></i></button>
+  </div>
+
+  <!-- UPI Modal -->
+  <div id="payModal" class="modal">
+    <div class="modal-content">
+      <h3 style="font-size: 15px;">Order Summary</h3>
+      <div id="orderSummary" class="order-summary"></div>
+      <h3 style="font-size: 14px; margin-top: 10px;">Scan QR Code to Pay</h3>
+      <div id="qrcode" style="display: flex; justify-content: center; margin: 15px 0;"></div>
+      <button class="btn-add" style="width: 100%; padding: 12px; font-size: 14px;" onclick="confirmOrder()">Confirm Payment</button>
+    </div>
+  </div>
+
+  <audio id="readySound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
   <script>
     const firebaseConfig = {
@@ -48,23 +270,150 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    function placeOrder(itemName, price) {
-      db.ref('lastToken').transaction((currentToken) => {
-        return (currentToken || 100) + 1;
-      }, (error, committed, snapshot) => {
-        if (committed) {
-          const newToken = snapshot.val();
+    let cart = {};
 
+    window.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().getDay();
+      document.querySelectorAll('.special-card').forEach(card => {
+        const day = parseInt(card.getAttribute('data-day'));
+        if (day === today) {
+          card.style.display = 'flex';
+          const badge = card.querySelector('.special-badge');
+          badge.innerText = "🔥 TODAY'S SPECIAL";
+          badge.style.background = "#28a745";
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+
+    function addToCart(name, price) {
+      if (!cart[name]) cart[name] = { price: price, qty: 1 };
+      else cart[name].qty++;
+      updateCartUI();
+    }
+
+    function changeQty(name, delta) {
+      if (cart[name]) {
+        cart[name].qty += delta;
+        if (cart[name].qty <= 0) delete cart[name];
+      }
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      let totalQty = 0, totalPrice = 0;
+      for (let item in cart) {
+        totalQty += cart[item].qty;
+        totalPrice += cart[item].qty * cart[item].price;
+      }
+
+      document.querySelectorAll('[id^="action-"]').forEach(div => {
+        const itemName = div.id.replace('action-', '');
+        if (cart[itemName] && cart[itemName].qty > 0) {
+          div.innerHTML = `
+            <div class="qty-controls">
+              <button class="qty-btn" onclick="changeQty('${itemName}', -1)">-</button>
+              <span class="qty-count">${cart[itemName].qty}</span>
+              <button class="qty-btn" onclick="changeQty('${itemName}', 1)">+</button>
+            </div>`;
+        } else {
+          const price = getPriceFor(itemName);
+          div.innerHTML = `<button class="btn-add" onclick="addToCart('${itemName}', ${price})">Add</button>`;
+        }
+      });
+
+      const cartBar = document.getElementById('cartBar');
+      if (totalQty > 0) {
+        cartBar.style.display = 'flex';
+        document.getElementById('cartCountText').innerText = `${totalQty} ITEM${totalQty > 1 ? 'S' : ''}`;
+        document.getElementById('cartTotalText').innerText = `₹${totalPrice}`;
+      } else {
+        cartBar.style.display = 'none';
+      }
+    }
+
+    function getPriceFor(name) {
+      const prices = { 'Pav Bhaji': 50, 'Kadhi Chawal': 80, 'Veg Noodles': 80, 'Dal Makhani Rice': 80, 'Cheese Omelette': 60, 'Rajma Rice': 80, 'Chole Bhature': 90, 'Cold Coffee': 50, 'Veg Sandwich': 40 };
+      return prices[name] || 0;
+    }
+
+    function filterCategory(category, btn) {
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const today = new Date().getDay();
+
+      document.querySelectorAll('.menu-card').forEach(card => {
+        const isSpecial = card.classList.contains('special-card');
+        const cardCategory = card.getAttribute('data-category');
+        const cardDay = parseInt(card.getAttribute('data-day') || 0);
+
+        if (category === 'specials') {
+          card.style.display = isSpecial ? 'flex' : 'none';
+        } else if (category === 'all') {
+          card.style.display = (!isSpecial || cardDay === today) ? 'flex' : 'none';
+        } else {
+          card.style.display = (cardCategory === category && (!isSpecial || cardDay === today)) ? 'flex' : 'none';
+        }
+      });
+    }
+
+    function filterSearch() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      document.querySelectorAll('.menu-card').forEach(card => {
+        const title = card.querySelector('h3').innerText.toLowerCase();
+        card.style.display = title.includes(query) ? 'flex' : 'none';
+      });
+    }
+
+    function openPaymentModal() {
+      let summaryHtml = '', total = 0;
+      for (let item in cart) {
+        let cost = cart[item].qty * cart[item].price;
+        total += cost;
+        summaryHtml += `<div class="summary-row"><span>${item} x ${cart[item].qty}</span><b>₹${cost}</b></div>`;
+      }
+      summaryHtml += `<hr style="margin: 8px 0; border: none; border-top: 1px dashed #ccc;"><div class="summary-row"><b>Total Payable</b><b>₹${total}</b></div>`;
+
+      document.getElementById('orderSummary').innerHTML = summaryHtml;
+      document.getElementById('qrcode').innerHTML = "";
+      new QRCode(document.getElementById("qrcode"), { text: `upi://pay?pa=cafe10@upi&pn=Cafe10NCU&am=${total}&cu=INR`, width: 130, height: 130 });
+      document.getElementById('payModal').style.display = 'flex';
+    }
+
+    function confirmOrder() {
+      document.getElementById('payModal').style.display = 'none';
+      let itemSummaryStr = Object.keys(cart).map(k => `${k} (x${cart[k].qty})`).join(', ');
+      let totalPrice = Object.keys(cart).reduce((s, k) => s + (cart[k].qty * cart[k].price), 0);
+
+      db.ref('lastToken').transaction((curr) => (curr || 100) + 1, (err, committed, snap) => {
+        if (committed) {
+          const newToken = snap.val();
           db.ref('orders/' + newToken).set({
-            item: itemName,
-            price: price,
-            token: newToken,
-            status: 'Preparing',
-            time: new Date().toLocaleTimeString()
+            item: itemSummaryStr, price: totalPrice, token: newToken, status: 'Preparing', time: new Date().toLocaleTimeString()
           });
+
+          cart = {};
+          updateCartUI();
 
           document.getElementById('tokenNum').innerText = '#' + newToken;
           document.getElementById('tokenBox').style.display = 'block';
+
+          db.ref('orders').once('value', (s) => {
+            let count = 0;
+            s.forEach(c => { if(c.val().status === 'Preparing') count++; });
+            document.getElementById('waitTime').innerText = Math.max(3, count * 3);
+          });
+
+          db.ref('orders/' + newToken).on('value', (s) => {
+            const data = s.val();
+            const stepReady = document.getElementById('stepReady');
+            if (data && data.status === 'Completed') {
+              stepReady.classList.add('active');
+              if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+              document.getElementById('readySound').play().catch(() => {});
+            }
+          });
         }
       });
     }
